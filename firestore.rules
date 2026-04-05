@@ -1,45 +1,57 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users collection - simple rules that work
-    match /users/{userId} {
-      allow read: if request.auth != null;
+    // Users: eigen profiel lezen/schrijven, admin alles
+    match /users/{uid} {
+      allow read, write: if request.auth.uid == uid;
+      allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Content: publiek lezen, klant en admin schrijven
+    match /content/{document=**} {
+      allow read: if true;
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+                   || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'klant';
+    }
+
+    // Aanvragen: publiek aanmaken, auth lezen/updaten
+    match /aanvragen/{id} {
+      allow create: if true;
+      allow read, update: if request.auth != null;
+    }
+
+    // Afspraken: auth vereist
+    match /afspraken/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Portfolio: publiek lezen, auth schrijven
+    match /portfolio/{id} {
+      allow read: if true;
       allow write: if request.auth != null;
     }
-    
-    // Status updates
-    match /statusUpdates/{updateId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+
+    // Producten: publiek lezen, auth schrijven
+    match /producten/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
-    
-    // Global chat messages
-    match /chatMessages/{messageId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+
+    // Documenten: auth vereist
+    match /documenten/{id} {
+      allow read, write: if request.auth != null;
     }
-    
-    // Conversations for individual and group chats
-    match /conversations/{conversationId} {
-      allow create: if request.auth != null;
-      allow read: if request.auth != null && request.auth.uid in resource.data.participants;
-      allow update: if request.auth != null && (
-        resource.data.get('participants', []) is list && 
-        request.auth.uid in resource.data.participants
-      );
-      allow delete: if request.auth != null && request.auth.uid == resource.data.get('adminId', null);
-         
-      // Messages subcollection within conversations
-      match /messages/{messageId} {
-        allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-        allow read: if request.auth != null && (
-          get(/databases/$(database)/documents/conversations/$(conversationId)).data.get('participants', []) is list &&
-          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants
-        );
-        allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      }
+
+    // Reviews: publiek lezen, auth schrijven
+    match /reviews/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Config: publiek lezen, alleen admin schrijven
+    match /config/{document=**} {
+      allow read: if true;
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
 }
