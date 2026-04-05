@@ -1,0 +1,13 @@
+[Bedrijfsnaam]
+
+[Slogan]
+
+Dit is de website van [bedrijfsnaam]. [Korte beschrijving].
+
+Diensten
+[Diensten worden automatisch gevuld vanuit de website configuratie]
+
+Contact
+E-mail: [email]
+Telefoon: [telefoon]
+Adres: [adres]
