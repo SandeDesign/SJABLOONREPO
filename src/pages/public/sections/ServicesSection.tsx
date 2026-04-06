@@ -37,7 +37,7 @@ const ServicesPage = () => {
   }, [config.info.naam, c?.paginaTitel])
 
   return (
-    <>
+    <div className={`transition-opacity duration-300 ${loading ? 'opacity-0' : 'opacity-100'}`}>
       <PageHeader
         titel={c?.paginaTitel || 'Onze diensten'}
         subtitel={c?.paginaSubtitel || 'Ontdek wat we voor u kunnen betekenen'}
@@ -47,9 +47,7 @@ const ServicesPage = () => {
 
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {loading ? (
-            <div className="text-center py-12 text-gray-500">Laden...</div>
-          ) : items.length > 0 ? (
+          {items.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {items.map((service, i) => (
                 <motion.div
@@ -108,7 +106,7 @@ const ServicesPage = () => {
           </div>
         </section>
       )}
-    </>
+    </div>
   )
 }
 

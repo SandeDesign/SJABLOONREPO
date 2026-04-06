@@ -40,7 +40,7 @@ type ContactFormValues = z.infer<typeof contactSchema>
 
 const ContactPage = () => {
   const { config } = useTenantConfig()
-  const { data: c } = useContent<ContactContent>('contact')
+  const { data: c, loading } = useContent<ContactContent>('contact')
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -80,7 +80,7 @@ const ContactPage = () => {
   ].filter((ci) => ci.waarde)
 
   return (
-    <>
+    <div className={`transition-opacity duration-300 ${loading ? 'opacity-0' : 'opacity-100'}`}>
       <PageHeader
         titel={c?.paginaTitel || 'Contact'}
         subtitel={c?.paginaSubtitel || 'We horen graag van u. Neem gerust contact op.'}
@@ -186,7 +186,7 @@ const ContactPage = () => {
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }
 
