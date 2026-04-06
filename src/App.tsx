@@ -4,8 +4,16 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 
-// Public
+// Public layout + pagina's
+import PubliekLayout from './pages/public/components/PubliekLayout'
 import PubliekeWebsite from './pages/public/PubliekeWebsite'
+import AboutPage from './pages/public/sections/AboutSection'
+import ServicesPage from './pages/public/sections/ServicesSection'
+import PortfolioPage from './pages/public/sections/PortfolioSection'
+import ReviewsPage from './pages/public/sections/ReviewsSection'
+import ContactPage from './pages/public/sections/ContactSection'
+
+// Auth
 import Login from './pages/Login'
 import Register from './pages/Register'
 
@@ -34,8 +42,17 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            {/* Publieke routes */}
-            <Route path="/" element={<PubliekeWebsite />} />
+            {/* Publieke website — multi-page met gedeelde layout */}
+            <Route element={<PubliekLayout />}>
+              <Route path="/" element={<PubliekeWebsite />} />
+              <Route path="/over-ons" element={<AboutPage />} />
+              <Route path="/diensten" element={<ServicesPage />} />
+              <Route path="/portfolio" element={<PortfolioPage />} />
+              <Route path="/reviews" element={<ReviewsPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+            </Route>
+
+            {/* Auth */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 

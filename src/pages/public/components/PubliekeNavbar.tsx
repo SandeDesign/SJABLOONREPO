@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTenantConfig } from '../../../hooks/useTenantConfig'
@@ -7,16 +7,22 @@ import Button from '../../../components/ui/Button'
 
 const PubliekeNavbar = () => {
   const { config } = useTenantConfig()
+  const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const sections = [
-    { key: 'hero', label: 'Home', href: '#hero' },
-    { key: 'about', label: 'Over ons', href: '#about' },
-    { key: 'services', label: 'Diensten', href: '#services' },
-    { key: 'portfolio', label: 'Portfolio', href: '#portfolio' },
-    { key: 'reviews', label: 'Reviews', href: '#reviews' },
-    { key: 'contact', label: 'Contact', href: '#contact' },
-  ].filter((s) => config.website[s.key as keyof typeof config.website])
+  const paginas = [
+    { key: 'hero', label: 'Home', href: '/' },
+    { key: 'about', label: 'Over ons', href: '/over-ons' },
+    { key: 'services', label: 'Diensten', href: '/diensten' },
+    { key: 'portfolio', label: 'Portfolio', href: '/portfolio' },
+    { key: 'reviews', label: 'Reviews', href: '/reviews' },
+    { key: 'contact', label: 'Contact', href: '/contact' },
+  ].filter((p) => config.website[p.key as keyof typeof config.website])
+
+  const isActive = (href: string) => {
+    if (href === '/') return location.pathname === '/'
+    return location.pathname.startsWith(href)
+  }
 
   return (
     <nav className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
@@ -37,17 +43,21 @@ const PubliekeNavbar = () => {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-6">
-            {sections.map((s) => (
-              <a
-                key={s.key}
-                href={s.href}
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
+          <div className="hidden md:flex items-center gap-1">
+            {paginas.map((p) => (
+              <Link
+                key={p.key}
+                to={p.href}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive(p.href)
+                    ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
+                }`}
               >
-                {s.label}
-              </a>
+                {p.label}
+              </Link>
             ))}
-            <Link to="/login">
+            <Link to="/login" className="ml-4">
               <Button variant="primary" size="sm">
                 Inloggen
               </Button>
@@ -73,16 +83,20 @@ const PubliekeNavbar = () => {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
           >
-            <div className="px-4 py-4 space-y-2">
-              {sections.map((s) => (
-                <a
-                  key={s.key}
-                  href={s.href}
+            <div className="px-4 py-4 space-y-1">
+              {paginas.map((p) => (
+                <Link
+                  key={p.key}
+                  to={p.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                  className={`block px-3 py-2 rounded-lg text-sm font-medium ${
+                    isActive(p.href)
+                      ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
+                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+                  }`}
                 >
-                  {s.label}
-                </a>
+                  {p.label}
+                </Link>
               ))}
               <Link to="/login" onClick={() => setMobileOpen(false)}>
                 <Button variant="primary" isFullWidth className="mt-2">
