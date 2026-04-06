@@ -6,6 +6,14 @@ const PubliekeFooter = () => {
   const { config } = useTenantConfig()
   const jaar = new Date().getFullYear()
 
+  const paginas = [
+    { key: 'about', label: 'Over ons', href: '/over-ons' },
+    { key: 'services', label: 'Diensten', href: '/diensten' },
+    { key: 'portfolio', label: 'Portfolio', href: '/portfolio' },
+    { key: 'reviews', label: 'Reviews', href: '/reviews' },
+    { key: 'contact', label: 'Contact', href: '/contact' },
+  ].filter((p) => config.website[p.key as keyof typeof config.website])
+
   return (
     <footer className="bg-gray-50 dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -21,6 +29,28 @@ const PubliekeFooter = () => {
             {config.info.kvk && (
               <p className="text-sm text-gray-500 dark:text-gray-500">KVK: {config.info.kvk}</p>
             )}
+          </div>
+
+          {/* Pagina's */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Pagina&#39;s</h3>
+            <div className="space-y-2">
+              {paginas.map((p) => (
+                <Link
+                  key={p.key}
+                  to={p.href}
+                  className="block text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  {p.label}
+                </Link>
+              ))}
+              <Link
+                to="/login"
+                className="block text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+              >
+                Inloggen
+              </Link>
+            </div>
           </div>
 
           {/* Contact */}
@@ -51,19 +81,6 @@ const PubliekeFooter = () => {
                   {config.info.adres}
                 </p>
               )}
-            </div>
-          </div>
-
-          {/* Links */}
-          <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Links</h3>
-            <div className="space-y-2">
-              <Link
-                to="/login"
-                className="block text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-              >
-                Inloggen
-              </Link>
             </div>
           </div>
         </div>
