@@ -1,24 +1,33 @@
 import { Link } from 'react-router-dom'
 import { Mail, Phone, MapPin } from 'lucide-react'
 import { useTenantConfig } from '../../../hooks/useTenantConfig'
+import { useContent } from '../../../hooks/useContent'
+
+interface HomeContent {
+  aboutLabel?: string
+  servicesLabel?: string
+  portfolioLabel?: string
+  reviewsLabel?: string
+  contactLabel?: string
+}
 
 const PubliekeFooter = () => {
   const { config } = useTenantConfig()
+  const { data: c } = useContent<HomeContent>('home')
   const jaar = new Date().getFullYear()
 
   const paginas = [
-    { key: 'about', label: 'Over ons', href: '/over-ons' },
-    { key: 'services', label: 'Diensten', href: '/diensten' },
-    { key: 'portfolio', label: 'Portfolio', href: '/portfolio' },
-    { key: 'reviews', label: 'Reviews', href: '/reviews' },
-    { key: 'contact', label: 'Contact', href: '/contact' },
+    { key: 'about', label: c?.aboutLabel || 'Over ons', href: '/over-ons' },
+    { key: 'services', label: c?.servicesLabel || 'Diensten', href: '/diensten' },
+    { key: 'portfolio', label: c?.portfolioLabel || 'Portfolio', href: '/portfolio' },
+    { key: 'reviews', label: c?.reviewsLabel || 'Reviews', href: '/reviews' },
+    { key: 'contact', label: c?.contactLabel || 'Contact', href: '/contact' },
   ].filter((p) => config.website[p.key as keyof typeof config.website])
 
   return (
     <footer className="bg-gray-50 dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Bedrijfsinfo */}
           <div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
               {config.info.naam}
@@ -31,7 +40,6 @@ const PubliekeFooter = () => {
             )}
           </div>
 
-          {/* Pagina's */}
           <div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Pagina&#39;s</h3>
             <div className="space-y-2">
@@ -53,7 +61,6 @@ const PubliekeFooter = () => {
             </div>
           </div>
 
-          {/* Contact */}
           <div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Contact</h3>
             <div className="space-y-3">

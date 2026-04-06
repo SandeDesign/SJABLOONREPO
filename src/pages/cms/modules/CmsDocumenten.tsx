@@ -1,18 +1,17 @@
 import { useEffect, useState, useRef } from 'react'
 import { Upload, Download, Trash2, FileText, Loader2 } from 'lucide-react'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { storage } from '../../../lib/firebase'
 import toast from 'react-hot-toast'
 import { getCollection, addDocument, deleteDocument, Timestamp } from '../../../lib/firestore'
 import Button from '../../../components/ui/Button'
 import { Card, CardContent } from '../../../components/ui/Card'
 
-interface Document {
+interface DocumentItem {
   id: string
   naam: string
-  url: string
+  data: string
   categorie: 'offerte' | 'factuur' | 'contract' | 'overig'
   bestandsnaam: string
+  type: string
   createdAt: { seconds: number }
 }
 
@@ -23,15 +22,24 @@ const categorieLabels: Record<string, string> = {
   overig: 'Overig',
 }
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(new Error('Bestand lezen mislukt'))
+    reader.readAsDataURL(file)
+  })
+}
+
 const CmsDocumenten = () => {
-  const [documenten, setDocumenten] = useState<Document[]>([])
+  const [documenten, setDocumenten] = useState<DocumentItem[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
-  const [categorie, setCategorie] = useState<Document['categorie']>('overig')
+  const [categorie, setCategorie] = useState<DocumentItem['categorie']>('overig')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const laden = async () => {
-    const data = await getCollection<Document>('documenten')
+    const data = await getCollection<DocumentItem>('documenten')
     setDocumenten(data)
     setLoading(false)
   }
@@ -44,19 +52,23 @@ const CmsDocumenten = () => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    if (file.size > 1024 * 1024) {
+      toast.error('Bestand te groot. Maximaal 1MB.')
+      return
+    }
+
     setUploading(true)
     try {
-      const storageRef = ref(storage, `documenten/${Date.now()}_${file.name}`)
-      await uploadBytes(storageRef, file)
-      const url = await getDownloadURL(storageRef)
+      const base64 = await fileToBase64(file)
       await addDocument('documenten', {
         naam: file.name.replace(/\.[^/.]+$/, ''),
         bestandsnaam: file.name,
-        url,
+        data: base64,
+        type: file.type,
         categorie,
         createdAt: Timestamp.now(),
       })
-      toast.success('Document geupload')
+      toast.success('Document opgeslagen')
       await laden()
     } catch {
       toast.error('Upload mislukt')
@@ -64,6 +76,13 @@ const CmsDocumenten = () => {
       setUploading(false)
       if (inputRef.current) inputRef.current.value = ''
     }
+  }
+
+  const downloaden = (doc: DocumentItem) => {
+    const link = document.createElement('a')
+    link.href = doc.data
+    link.download = doc.bestandsnaam
+    link.click()
   }
 
   const verwijderen = async (id: string) => {
@@ -80,7 +99,7 @@ const CmsDocumenten = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Documenten</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">Upload en beheer documenten.</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Upload en beheer documenten (max 1MB per bestand).</p>
       </div>
 
       {/* Upload */}
@@ -93,7 +112,7 @@ const CmsDocumenten = () => {
               </label>
               <select
                 value={categorie}
-                onChange={(e) => setCategorie(e.target.value as Document['categorie'])}
+                onChange={(e) => setCategorie(e.target.value as DocumentItem['categorie'])}
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               >
                 <option value="offerte">Offerte</option>
@@ -141,17 +160,17 @@ const CmsDocumenten = () => {
                   </p>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <a
-                    href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => downloaden(doc)}
                     className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+                    title="Downloaden"
                   >
                     <Download size={16} />
-                  </a>
+                  </button>
                   <button
                     onClick={() => verwijderen(doc.id)}
                     className="p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
+                    title="Verwijderen"
                   >
                     <Trash2 size={16} />
                   </button>

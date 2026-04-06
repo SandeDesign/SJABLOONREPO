@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ExternalLink, Image } from 'lucide-react'
 import { useTenantConfig } from '../../../hooks/useTenantConfig'
+import { useContent } from '../../../hooks/useContent'
 import { getCollection, orderBy } from '../../../lib/firestore'
 import PageHeader from './HeroSection'
 import { Card, CardContent } from '../../../components/ui/Card'
@@ -14,23 +15,33 @@ interface PortfolioItem {
   url?: string
 }
 
+interface PortfolioContent {
+  id?: string
+  paginaTitel?: string
+  paginaSubtitel?: string
+  leegTitel?: string
+  leegTekst?: string
+  bekijkenTekst?: string
+}
+
 const PortfolioPage = () => {
   const { config } = useTenantConfig()
+  const { data: c } = useContent<PortfolioContent>('portfolio')
   const [items, setItems] = useState<PortfolioItem[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    document.title = `Portfolio — ${config.info.naam}`
+    document.title = `${c?.paginaTitel || 'Portfolio'} — ${config.info.naam}`
     getCollection<PortfolioItem>('portfolio', orderBy('titel'))
       .then(setItems)
       .finally(() => setLoading(false))
-  }, [config.info.naam])
+  }, [config.info.naam, c?.paginaTitel])
 
   return (
     <>
       <PageHeader
-        titel="Portfolio"
-        subtitel="Bekijk ons werk en eerdere projecten"
+        titel={c?.paginaTitel || 'Portfolio'}
+        subtitel={c?.paginaSubtitel || 'Bekijk ons werk en eerdere projecten'}
       />
 
       <section className="py-16 md:py-24">
@@ -72,7 +83,7 @@ const PortfolioPage = () => {
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 text-sm font-medium"
                         >
-                          Bekijken <ExternalLink size={14} />
+                          {c?.bekijkenTekst || 'Bekijken'} <ExternalLink size={14} />
                         </a>
                       )}
                     </CardContent>
@@ -84,10 +95,10 @@ const PortfolioPage = () => {
             <div className="text-center py-12">
               <Image className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={48} />
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Portfolio items worden binnenkort toegevoegd
+                {c?.leegTitel || 'Portfolio items worden binnenkort toegevoegd'}
               </h3>
               <p className="text-gray-500 dark:text-gray-400">
-                We zijn druk bezig met het opbouwen van ons portfolio.
+                {c?.leegTekst || 'We zijn druk bezig met het opbouwen van ons portfolio.'}
               </p>
             </div>
           )}

@@ -1,18 +1,49 @@
 import { useState, useRef } from 'react'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { storage } from '../../lib/firebase'
 import { Upload, X, Loader2 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 interface ImageUploadProps {
-  path: string
   value?: string
   onChange: (url: string) => void
   className?: string
+  maxSizeKb?: number
 }
 
-const ImageUpload = ({ path, value, onChange, className }: ImageUploadProps) => {
+function compressImage(file: File, maxWidth = 1200, quality = 0.8): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let { width, height } = img
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width)
+          width = maxWidth
+        }
+
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Canvas context niet beschikbaar'))
+          return
+        }
+        ctx.drawImage(img, 0, 0, width, height)
+        resolve(canvas.toDataURL('image/webp', quality))
+      }
+      img.onerror = () => reject(new Error('Afbeelding laden mislukt'))
+      img.src = e.target?.result as string
+    }
+    reader.onerror = () => reject(new Error('Bestand lezen mislukt'))
+    reader.readAsDataURL(file)
+  })
+}
+
+const ImageUpload = ({ value, onChange, className, maxSizeKb = 800 }: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,15 +51,23 @@ const ImageUpload = ({ path, value, onChange, className }: ImageUploadProps) => 
     if (!file) return
 
     setUploading(true)
+    setError('')
+
     try {
-      const storageRef = ref(storage, `${path}/${Date.now()}_${file.name}`)
-      await uploadBytes(storageRef, file)
-      const url = await getDownloadURL(storageRef)
-      onChange(url)
+      const base64 = await compressImage(file)
+
+      const sizeKb = Math.round((base64.length * 3) / 4 / 1024)
+      if (sizeKb > maxSizeKb) {
+        setError(`Afbeelding te groot (${sizeKb}KB). Maximaal ${maxSizeKb}KB.`)
+        return
+      }
+
+      onChange(base64)
     } catch {
-      // Upload failed silently
+      setError('Afbeelding verwerken mislukt')
     } finally {
       setUploading(false)
+      if (inputRef.current) inputRef.current.value = ''
     }
   }
 
@@ -57,9 +96,14 @@ const ImageUpload = ({ path, value, onChange, className }: ImageUploadProps) => 
           ) : (
             <Upload size={18} />
           )}
-          {uploading ? 'Uploaden...' : 'Afbeelding kiezen'}
+          {uploading ? 'Verwerken...' : 'Afbeelding kiezen'}
         </button>
       )}
+
+      {error && (
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      )}
+
       <input
         ref={inputRef}
         type="file"

@@ -7,18 +7,36 @@ import { useContent } from '../../hooks/useContent'
 import Button from '../../components/ui/Button'
 import { Card, CardContent } from '../../components/ui/Card'
 
-interface HeroContent {
+interface HomeContent {
   id?: string
-  titel?: string
-  subtitel?: string
+  // Hero
+  heroTitel?: string
+  heroSubtitel?: string
+  heroCtaTekst?: string
+  heroCtaLink?: string
+  heroAchtergrondUrl?: string
+  heroCta2Tekst?: string
+  // Secties overzicht
+  sectieTitel?: string
+  sectieSub?: string
+  // Quick links
+  aboutLabel?: string
+  aboutBeschrijving?: string
+  servicesLabel?: string
+  servicesBeschrijving?: string
+  portfolioLabel?: string
+  portfolioBeschrijving?: string
+  reviewsLabel?: string
+  reviewsBeschrijving?: string
+  // CTA
+  ctaTitel?: string
   ctaTekst?: string
-  ctaLink?: string
-  achtergrondUrl?: string
+  ctaKnop?: string
 }
 
 const PubliekeWebsite = () => {
   const { config } = useTenantConfig()
-  const { data: hero } = useContent<HeroContent>('hero')
+  const { data: c } = useContent<HomeContent>('home')
 
   useEffect(() => {
     document.title = config.seo.title || config.info.naam
@@ -28,36 +46,37 @@ const PubliekeWebsite = () => {
     }
   }, [config.seo.title, config.seo.description, config.info.naam])
 
-  const titel = hero?.titel || config.info.naam
-  const subtitel = hero?.subtitel || config.info.slogan
-  const ctaTekst = hero?.ctaTekst || 'Neem contact op'
+  const heroTitel = c?.heroTitel || config.info.naam
+  const heroSubtitel = c?.heroSubtitel || config.info.slogan
+  const heroCtaTekst = c?.heroCtaTekst || 'Neem contact op'
+  const heroCta2Tekst = c?.heroCta2Tekst || 'Bekijk onze diensten'
 
   const quickLinks = [
     {
       key: 'about',
-      label: 'Over ons',
-      beschrijving: 'Leer ons beter kennen en ontdek waar we voor staan',
+      label: c?.aboutLabel || 'Over ons',
+      beschrijving: c?.aboutBeschrijving || 'Leer ons beter kennen en ontdek waar we voor staan',
       href: '/over-ons',
       icoon: Users,
     },
     {
       key: 'services',
-      label: 'Diensten',
-      beschrijving: 'Bekijk ons volledige aanbod aan diensten',
+      label: c?.servicesLabel || 'Diensten',
+      beschrijving: c?.servicesBeschrijving || 'Bekijk ons volledige aanbod aan diensten',
       href: '/diensten',
       icoon: Briefcase,
     },
     {
       key: 'portfolio',
-      label: 'Portfolio',
-      beschrijving: 'Bekijk ons werk en eerdere projecten',
+      label: c?.portfolioLabel || 'Portfolio',
+      beschrijving: c?.portfolioBeschrijving || 'Bekijk ons werk en eerdere projecten',
       href: '/portfolio',
       icoon: Image,
     },
     {
       key: 'reviews',
-      label: 'Reviews',
-      beschrijving: 'Lees wat onze klanten over ons zeggen',
+      label: c?.reviewsLabel || 'Reviews',
+      beschrijving: c?.reviewsBeschrijving || 'Lees wat onze klanten over ons zeggen',
       href: '/reviews',
       icoon: MessageSquare,
     },
@@ -67,10 +86,10 @@ const PubliekeWebsite = () => {
     <>
       {/* Hero */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-        {hero?.achtergrondUrl ? (
+        {c?.heroAchtergrondUrl ? (
           <div
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${hero.achtergrondUrl})` }}
+            style={{ backgroundImage: `url(${c.heroAchtergrondUrl})` }}
           >
             <div className="absolute inset-0 bg-black/50" />
           </div>
@@ -86,7 +105,7 @@ const PubliekeWebsite = () => {
             className="text-4xl md:text-6xl font-bold text-white mb-6"
             style={{ fontFamily: 'var(--font-heading, inherit)' }}
           >
-            {titel}
+            {heroTitel}
           </motion.h1>
 
           <motion.p
@@ -95,7 +114,7 @@ const PubliekeWebsite = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg md:text-xl text-white/80 mb-8 max-w-2xl mx-auto"
           >
-            {subtitel}
+            {heroSubtitel}
           </motion.p>
 
           <motion.div
@@ -104,15 +123,15 @@ const PubliekeWebsite = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link to="/contact">
+            <Link to={c?.heroCtaLink || '/contact'}>
               <Button variant="secondary" size="lg" icon={<ArrowRight size={18} />}>
-                {ctaTekst}
+                {heroCtaTekst}
               </Button>
             </Link>
             {config.website.services && (
               <Link to="/diensten">
                 <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10">
-                  Bekijk onze diensten
+                  {heroCta2Tekst}
                 </Button>
               </Link>
             )}
@@ -120,7 +139,7 @@ const PubliekeWebsite = () => {
         </div>
       </section>
 
-      {/* Snelkoppelingen naar pagina's */}
+      {/* Snelkoppelingen */}
       {quickLinks.length > 0 && (
         <section className="py-20 bg-gray-50 dark:bg-gray-950">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -134,10 +153,10 @@ const PubliekeWebsite = () => {
                 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
                 style={{ fontFamily: 'var(--font-heading, inherit)' }}
               >
-                Wat kunnen we voor u doen?
+                {c?.sectieTitel || 'Wat kunnen we voor u doen?'}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                Ontdek meer over ons, onze diensten en wat we voor u kunnen betekenen.
+                {c?.sectieSub || 'Ontdek meer over ons, onze diensten en wat we voor u kunnen betekenen.'}
               </p>
             </motion.div>
 
@@ -172,7 +191,7 @@ const PubliekeWebsite = () => {
         </section>
       )}
 
-      {/* CTA sectie */}
+      {/* CTA */}
       {config.website.contact && (
         <section className="py-20 bg-primary-600">
           <div className="max-w-4xl mx-auto px-4 text-center">
@@ -182,14 +201,14 @@ const PubliekeWebsite = () => {
               viewport={{ once: true }}
             >
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Klaar om te beginnen?
+                {c?.ctaTitel || 'Klaar om te beginnen?'}
               </h2>
               <p className="text-white/80 text-lg mb-8 max-w-xl mx-auto">
-                Neem vandaag nog contact met ons op. We helpen u graag verder.
+                {c?.ctaTekst || 'Neem vandaag nog contact met ons op. We helpen u graag verder.'}
               </p>
               <Link to="/contact">
                 <Button variant="secondary" size="lg" icon={<ArrowRight size={18} />}>
-                  Contact opnemen
+                  {c?.ctaKnop || 'Contact opnemen'}
                 </Button>
               </Link>
             </motion.div>

@@ -115,7 +115,6 @@ const CmsPortfolio = () => {
               />
             </div>
             <ImageUpload
-              path="portfolio"
               value={form.afbeeldingUrl}
               onChange={(url) => setForm((f) => ({ ...f, afbeeldingUrl: url }))}
             />

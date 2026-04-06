@@ -132,7 +132,6 @@ const CmsProducten = () => {
               onChange={(e) => setForm((f) => ({ ...f, prijs: e.target.value }))}
             />
             <ImageUpload
-              path="producten"
               value={form.afbeeldingUrl}
               onChange={(url) => setForm((f) => ({ ...f, afbeeldingUrl: url }))}
             />
