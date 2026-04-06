@@ -3,20 +3,30 @@ import { Link, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTenantConfig } from '../../../hooks/useTenantConfig'
+import { useContent } from '../../../hooks/useContent'
 import Button from '../../../components/ui/Button'
+
+interface HomeContent {
+  aboutLabel?: string
+  servicesLabel?: string
+  portfolioLabel?: string
+  reviewsLabel?: string
+  contactLabel?: string
+}
 
 const PubliekeNavbar = () => {
   const { config } = useTenantConfig()
+  const { data: c } = useContent<HomeContent>('home')
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const paginas = [
     { key: 'hero', label: 'Home', href: '/' },
-    { key: 'about', label: 'Over ons', href: '/over-ons' },
-    { key: 'services', label: 'Diensten', href: '/diensten' },
-    { key: 'portfolio', label: 'Portfolio', href: '/portfolio' },
-    { key: 'reviews', label: 'Reviews', href: '/reviews' },
-    { key: 'contact', label: 'Contact', href: '/contact' },
+    { key: 'about', label: c?.aboutLabel || 'Over ons', href: '/over-ons' },
+    { key: 'services', label: c?.servicesLabel || 'Diensten', href: '/diensten' },
+    { key: 'portfolio', label: c?.portfolioLabel || 'Portfolio', href: '/portfolio' },
+    { key: 'reviews', label: c?.reviewsLabel || 'Reviews', href: '/reviews' },
+    { key: 'contact', label: c?.contactLabel || 'Contact', href: '/contact' },
   ].filter((p) => config.website[p.key as keyof typeof config.website])
 
   const isActive = (href: string) => {
@@ -28,7 +38,6 @@ const PubliekeNavbar = () => {
     <nav className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             {config.branding.logoUrl && (
               <img
@@ -42,7 +51,6 @@ const PubliekeNavbar = () => {
             </span>
           </Link>
 
-          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
             {paginas.map((p) => (
               <Link
@@ -64,7 +72,6 @@ const PubliekeNavbar = () => {
             </Link>
           </div>
 
-          {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
@@ -74,7 +81,6 @@ const PubliekeNavbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div

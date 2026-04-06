@@ -9,25 +9,31 @@ import Button from '../../../components/ui/Button'
 
 interface AboutContent {
   id?: string
+  // Page header
+  paginaTitel?: string
+  paginaSubtitel?: string
+  // Inhoud
   titel?: string
   tekst?: string
   afbeeldingUrl?: string
   kenmerken?: string[]
+  // CTA
+  ctaKnop?: string
 }
 
 const AboutPage = () => {
   const { config } = useTenantConfig()
-  const { data, loading } = useContent<AboutContent>('about')
+  const { data: c, loading } = useContent<AboutContent>('about')
 
   useEffect(() => {
-    document.title = `Over ons — ${config.info.naam}`
-  }, [config.info.naam])
+    document.title = `${c?.paginaTitel || 'Over ons'} — ${config.info.naam}`
+  }, [config.info.naam, c?.paginaTitel])
 
   return (
     <>
       <PageHeader
-        titel="Over ons"
-        subtitel="Leer ons beter kennen en ontdek waar we voor staan"
+        titel={c?.paginaTitel || 'Over ons'}
+        subtitel={c?.paginaSubtitel || 'Leer ons beter kennen en ontdek waar we voor staan'}
       />
 
       <section className="py-16 md:py-24">
@@ -36,7 +42,6 @@ const AboutPage = () => {
             <div className="text-center py-12 text-gray-500">Inhoud wordt geladen...</div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Tekst */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -46,12 +51,12 @@ const AboutPage = () => {
                   className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
                   style={{ fontFamily: 'var(--font-heading, inherit)' }}
                 >
-                  {data?.titel || config.info.naam}
+                  {c?.titel || config.info.naam}
                 </h2>
-                {data?.tekst ? (
+                {c?.tekst ? (
                   <div
                     className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-8 prose dark:prose-invert max-w-none"
-                    dangerouslySetInnerHTML={{ __html: data.tekst }}
+                    dangerouslySetInnerHTML={{ __html: c.tekst }}
                   />
                 ) : (
                   <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-8">
@@ -59,9 +64,9 @@ const AboutPage = () => {
                   </p>
                 )}
 
-                {data?.kenmerken && data.kenmerken.length > 0 && (
+                {c?.kenmerken && c.kenmerken.length > 0 && (
                   <ul className="space-y-3 mb-8">
-                    {data.kenmerken.map((kenmerk, i) => (
+                    {c.kenmerken.map((kenmerk, i) => (
                       <motion.li
                         key={i}
                         initial={{ opacity: 0, x: -10 }}
@@ -78,21 +83,22 @@ const AboutPage = () => {
 
                 {config.website.contact && (
                   <Link to="/contact">
-                    <Button icon={<ArrowRight size={16} />}>Neem contact op</Button>
+                    <Button icon={<ArrowRight size={16} />}>
+                      {c?.ctaKnop || 'Neem contact op'}
+                    </Button>
                   </Link>
                 )}
               </motion.div>
 
-              {/* Afbeelding */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                {data?.afbeeldingUrl ? (
+                {c?.afbeeldingUrl ? (
                   <img
-                    src={data.afbeeldingUrl}
-                    alt={data?.titel || 'Over ons'}
+                    src={c.afbeeldingUrl}
+                    alt={c?.titel || 'Over ons'}
                     className="rounded-2xl shadow-lg w-full object-cover"
                   />
                 ) : (

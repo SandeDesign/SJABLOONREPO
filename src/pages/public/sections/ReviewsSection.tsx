@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Star, ArrowRight, MessageSquare } from 'lucide-react'
 import { useTenantConfig } from '../../../hooks/useTenantConfig'
+import { useContent } from '../../../hooks/useContent'
 import { getCollection, where } from '../../../lib/firestore'
 import PageHeader from './HeroSection'
 import { Card, CardContent } from '../../../components/ui/Card'
@@ -17,17 +18,30 @@ interface Review {
   goedgekeurd: boolean
 }
 
+interface ReviewsContent {
+  id?: string
+  paginaTitel?: string
+  paginaSubtitel?: string
+  statsTekst?: string
+  leegTitel?: string
+  leegTekst?: string
+  ctaTitel?: string
+  ctaTekst?: string
+  ctaKnop?: string
+}
+
 const ReviewsPage = () => {
   const { config } = useTenantConfig()
+  const { data: c } = useContent<ReviewsContent>('reviews')
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    document.title = `Reviews — ${config.info.naam}`
+    document.title = `${c?.paginaTitel || 'Reviews'} — ${config.info.naam}`
     getCollection<Review>('reviews', where('goedgekeurd', '==', true))
       .then(setReviews)
       .finally(() => setLoading(false))
-  }, [config.info.naam])
+  }, [config.info.naam, c?.paginaTitel])
 
   const gemiddeld =
     reviews.length > 0
@@ -37,11 +51,10 @@ const ReviewsPage = () => {
   return (
     <>
       <PageHeader
-        titel="Reviews"
-        subtitel="Wat onze klanten over ons zeggen"
+        titel={c?.paginaTitel || 'Reviews'}
+        subtitel={c?.paginaSubtitel || 'Wat onze klanten over ons zeggen'}
       />
 
-      {/* Statistieken */}
       {gemiddeld && (
         <section className="py-12 bg-gray-50 dark:bg-gray-950">
           <div className="max-w-3xl mx-auto px-4 text-center">
@@ -60,13 +73,12 @@ const ReviewsPage = () => {
             </div>
             <p className="text-3xl font-bold text-gray-900 dark:text-white">{gemiddeld}</p>
             <p className="text-gray-500 dark:text-gray-400">
-              Gebaseerd op {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+              {c?.statsTekst || `Gebaseerd op ${reviews.length} review${reviews.length !== 1 ? 's' : ''}`}
             </p>
           </div>
         </section>
       )}
 
-      {/* Reviews grid */}
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
@@ -115,29 +127,28 @@ const ReviewsPage = () => {
             <div className="text-center py-12">
               <MessageSquare className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={48} />
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Nog geen reviews
+                {c?.leegTitel || 'Nog geen reviews'}
               </h3>
               <p className="text-gray-500 dark:text-gray-400">
-                Binnenkort verschijnen hier beoordelingen van onze klanten.
+                {c?.leegTekst || 'Binnenkort verschijnen hier beoordelingen van onze klanten.'}
               </p>
             </div>
           )}
         </div>
       </section>
 
-      {/* CTA */}
       {config.website.contact && (
         <section className="py-16 bg-gray-50 dark:bg-gray-950">
           <div className="max-w-3xl mx-auto px-4 text-center">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Overtuigd?
+              {c?.ctaTitel || 'Overtuigd?'}
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Neem contact met ons op en ervaar het zelf.
+              {c?.ctaTekst || 'Neem contact met ons op en ervaar het zelf.'}
             </p>
             <Link to="/contact">
               <Button size="lg" icon={<ArrowRight size={18} />}>
-                Contact opnemen
+                {c?.ctaKnop || 'Contact opnemen'}
               </Button>
             </Link>
           </div>

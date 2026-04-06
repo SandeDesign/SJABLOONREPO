@@ -12,30 +12,36 @@ interface ServiceItem {
   titel: string
   beschrijving: string
   prijs?: string
-  icoon?: string
 }
 
 interface ServicesContent {
   id?: string
+  paginaTitel?: string
+  paginaSubtitel?: string
   titel?: string
   items?: ServiceItem[]
+  leegTitel?: string
+  leegTekst?: string
+  ctaTitel?: string
+  ctaTekst?: string
+  ctaKnop?: string
 }
 
 const ServicesPage = () => {
   const { config } = useTenantConfig()
-  const { data, loading } = useContent<ServicesContent>('services')
-  const items = data?.items || []
+  const { data: c, loading } = useContent<ServicesContent>('services')
+  const items = c?.items || []
 
   useEffect(() => {
-    document.title = `Diensten — ${config.info.naam}`
-  }, [config.info.naam])
+    document.title = `${c?.paginaTitel || 'Diensten'} — ${config.info.naam}`
+  }, [config.info.naam, c?.paginaTitel])
 
   return (
     <>
       <PageHeader
-        titel={data?.titel || 'Onze diensten'}
-        subtitel="Ontdek wat we voor u kunnen betekenen"
-        ctaTekst={config.website.contact ? 'Offerte aanvragen' : undefined}
+        titel={c?.paginaTitel || 'Onze diensten'}
+        subtitel={c?.paginaSubtitel || 'Ontdek wat we voor u kunnen betekenen'}
+        ctaTekst={config.website.contact ? (c?.ctaKnop || 'Offerte aanvragen') : undefined}
         ctaHref={config.website.contact ? '/contact' : undefined}
       />
 
@@ -75,29 +81,28 @@ const ServicesPage = () => {
             <div className="text-center py-12">
               <Briefcase className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={48} />
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Diensten worden binnenkort toegevoegd
+                {c?.leegTitel || 'Diensten worden binnenkort toegevoegd'}
               </h3>
               <p className="text-gray-500 dark:text-gray-400">
-                Neem gerust alvast contact met ons op voor meer informatie.
+                {c?.leegTekst || 'Neem gerust alvast contact met ons op voor meer informatie.'}
               </p>
             </div>
           )}
         </div>
       </section>
 
-      {/* CTA */}
       {config.website.contact && (
         <section className="py-16 bg-gray-50 dark:bg-gray-950">
           <div className="max-w-3xl mx-auto px-4 text-center">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Interesse in een van onze diensten?
+              {c?.ctaTitel || 'Interesse in een van onze diensten?'}
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Neem vrijblijvend contact met ons op voor een gesprek of offerte.
+              {c?.ctaTekst || 'Neem vrijblijvend contact met ons op voor een gesprek of offerte.'}
             </p>
             <Link to="/contact">
               <Button size="lg" icon={<ArrowRight size={18} />}>
-                Contact opnemen
+                {c?.ctaKnop || 'Contact opnemen'}
               </Button>
             </Link>
           </div>
