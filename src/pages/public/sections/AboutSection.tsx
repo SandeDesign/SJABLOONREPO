@@ -30,7 +30,7 @@ const AboutPage = () => {
   }, [config.info.naam, c?.paginaTitel])
 
   return (
-    <>
+    <div className={`transition-opacity duration-300 ${loading ? 'opacity-0' : 'opacity-100'}`}>
       <PageHeader
         titel={c?.paginaTitel || 'Over ons'}
         subtitel={c?.paginaSubtitel || 'Leer ons beter kennen en ontdek waar we voor staan'}
@@ -38,10 +38,7 @@ const AboutPage = () => {
 
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {loading ? (
-            <div className="text-center py-12 text-gray-500">Inhoud wordt geladen...</div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -110,10 +107,9 @@ const AboutPage = () => {
                 )}
               </motion.div>
             </div>
-          )}
         </div>
       </section>
-    </>
+    </div>
   )
 }
 

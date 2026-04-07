@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Edit3, Save, X, Plus, Trash2, GripVertical } from 'lucide-react'
+import { Edit3, Save, Plus, Trash2, GripVertical, Globe, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTenantConfig } from '../../hooks/useTenantConfig'
 import { getDocument, setDocument } from '../../lib/firestore'
@@ -25,41 +25,53 @@ interface ServiceItem {
 // ============================================================
 
 const paginaConfig = [
-  { key: 'home', label: 'Homepage', beschrijving: 'Hero, secties overzicht en CTA', websiteKey: 'hero' as const },
-  { key: 'about', label: 'Over ons', beschrijving: 'Bedrijfsverhaal, kenmerken en afbeelding', websiteKey: 'about' as const },
-  { key: 'services', label: 'Diensten', beschrijving: 'Lijst van diensten met beschrijving en prijs', websiteKey: 'services' as const },
-  { key: 'portfolio', label: 'Portfolio', beschrijving: 'Pagina-teksten voor het portfolio overzicht', websiteKey: 'portfolio' as const },
-  { key: 'reviews', label: 'Reviews', beschrijving: 'Pagina-teksten voor de reviews pagina', websiteKey: 'reviews' as const },
-  { key: 'contact', label: 'Contact', beschrijving: 'Contactpagina teksten en formulier labels', websiteKey: 'contact' as const },
+  { key: 'home', label: 'Homepage', beschrijving: 'De hoofdpagina van je website', websiteKey: 'hero' as const },
+  { key: 'about', label: 'Over ons', beschrijving: 'Informatie over je bedrijf', websiteKey: 'about' as const },
+  { key: 'services', label: 'Diensten', beschrijving: 'Je aanbod en prijzen', websiteKey: 'services' as const },
+  { key: 'portfolio', label: 'Portfolio', beschrijving: 'Je werk en projecten', websiteKey: 'portfolio' as const },
+  { key: 'reviews', label: 'Reviews', beschrijving: 'Klantbeoordelingen', websiteKey: 'reviews' as const },
+  { key: 'contact', label: 'Contact', beschrijving: 'Contactformulier en gegevens', websiteKey: 'contact' as const },
 ]
 
 // ============================================================
 // Helpers
 // ============================================================
 
-const SectieLabel = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-6 mb-3 first:mt-0">
+const Groep = ({ titel, children }: { titel: string; children: React.ReactNode }) => (
+  <div className="space-y-4">
+    <div className="flex items-center gap-2 pt-6 first:pt-0">
+      <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+      <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-2">
+        {titel}
+      </span>
+      <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+    </div>
     {children}
-  </h3>
+  </div>
 )
 
-const VeldInput = ({
+const Veld = ({
   label,
   value,
   onChange,
   placeholder,
+  hulptekst,
 }: {
   label: string
   value: string
   onChange: (v: string) => void
   placeholder?: string
+  hulptekst?: string
 }) => (
-  <Input
-    label={label}
-    value={value}
-    onChange={(e) => onChange(e.target.value)}
-    placeholder={placeholder}
-  />
+  <div>
+    <Input
+      label={label}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+    />
+    {hulptekst && <p className="mt-1 text-xs text-gray-400">{hulptekst}</p>}
+  </div>
 )
 
 // ============================================================
@@ -89,7 +101,7 @@ const CmsPaginas = () => {
     try {
       const { id, ...saveData } = data
       await setDocument(`content/${editing}`, saveData)
-      toast.success('Opgeslagen!')
+      toast.success('Wijzigingen opgeslagen!')
       setEditing(null)
     } catch {
       toast.error('Opslaan mislukt')
@@ -107,59 +119,80 @@ const CmsPaginas = () => {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pagina&#39;s bewerken</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Website teksten</h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Bewerk alle teksten en afbeeldingen op de website.
+          Pas alle teksten en afbeeldingen op je website aan.
         </p>
       </div>
 
       {!editing ? (
-        <div className="space-y-4">
-          {activePaginas.map((pagina) => (
-            <motion.div key={pagina.key} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="py-5 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{pagina.label}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{pagina.beschrijving}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {activePaginas.map((pagina, i) => (
+            <motion.div key={pagina.key} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <Card
+                className="hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition-all cursor-pointer h-full"
+                onClick={() => loadSection(pagina.key)}
+              >
+                <CardContent className="py-5">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center">
+                        <Globe size={18} className="text-primary-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{pagina.label}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{pagina.beschrijving}</p>
+                      </div>
+                    </div>
+                    <Edit3 size={16} className="text-gray-400 mt-1" />
                   </div>
-                  <Button variant="outline" size="sm" icon={<Edit3 size={14} />} onClick={() => loadSection(pagina.key)}>
-                    Bewerken
-                  </Button>
                 </CardContent>
               </Card>
             </motion.div>
           ))}
         </div>
       ) : (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>{activePaginas.find((p) => p.key === editing)?.label} bewerken</CardTitle>
-            <button onClick={() => setEditing(null)} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
-              <X size={20} />
-            </button>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {editing === 'home' && <HomeEditor v={v} update={update} />}
-            {editing === 'about' && <AboutEditor data={data} v={v} update={update} />}
-            {editing === 'services' && <ServicesEditor data={data} v={v} update={update} />}
-            {editing === 'portfolio' && <PortfolioEditor v={v} update={update} />}
-            {editing === 'reviews' && <ReviewsEditor v={v} update={update} />}
-            {editing === 'contact' && <ContactEditor v={v} update={update} />}
+        <div className="space-y-4">
+          <button
+            onClick={() => setEditing(null)}
+            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <ArrowLeft size={16} />
+            Terug naar overzicht
+          </button>
 
-            <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Button onClick={saveSection} isLoading={saving} icon={<Save size={16} />}>Opslaan</Button>
-              <Button variant="outline" onClick={() => setEditing(null)}>Annuleren</Button>
-            </div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">
+                {activePaginas.find((p) => p.key === editing)?.label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {editing === 'home' && <HomeEditor v={v} update={update} />}
+              {editing === 'about' && <AboutEditor data={data} v={v} update={update} />}
+              {editing === 'services' && <ServicesEditor data={data} v={v} update={update} />}
+              {editing === 'portfolio' && <PortfolioEditor v={v} update={update} />}
+              {editing === 'reviews' && <ReviewsEditor v={v} update={update} />}
+              {editing === 'contact' && <ContactEditor v={v} update={update} />}
+
+              <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <Button onClick={saveSection} isLoading={saving} icon={<Save size={16} />}>
+                  Opslaan
+                </Button>
+                <Button variant="outline" onClick={() => setEditing(null)}>
+                  Annuleren
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   )
 }
 
 // ============================================================
-// Homepage Editor
+// Homepage
 // ============================================================
 
 const HomeEditor = ({
@@ -170,48 +203,52 @@ const HomeEditor = ({
   update: (f: string, val: unknown) => void
 }) => (
   <div className="space-y-4">
-    <SectieLabel>Hero sectie</SectieLabel>
-    <VeldInput label="Titel" value={v('heroTitel')} onChange={(val) => update('heroTitel', val)} placeholder="Welkom bij ons bedrijf" />
-    <VeldInput label="Subtitel" value={v('heroSubtitel')} onChange={(val) => update('heroSubtitel', val)} placeholder="Korte beschrijving" />
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <VeldInput label="Knop tekst" value={v('heroCtaTekst')} onChange={(val) => update('heroCtaTekst', val)} placeholder="Neem contact op" />
-      <VeldInput label="Knop link" value={v('heroCtaLink')} onChange={(val) => update('heroCtaLink', val)} placeholder="/contact" />
-    </div>
-    <VeldInput label="Tweede knop tekst" value={v('heroCta2Tekst')} onChange={(val) => update('heroCta2Tekst', val)} placeholder="Bekijk onze diensten" />
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Achtergrondafbeelding</label>
-      <ImageUpload value={v('heroAchtergrondUrl')} onChange={(url) => update('heroAchtergrondUrl', url)} />
-    </div>
+    <Groep titel="Banner bovenaan">
+      <Veld label="Titel" value={v('heroTitel')} onChange={(val) => update('heroTitel', val)} placeholder="Welkom bij ons bedrijf" />
+      <Veld label="Ondertitel" value={v('heroSubtitel')} onChange={(val) => update('heroSubtitel', val)} placeholder="Korte beschrijving van je bedrijf" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Veld label="Knop tekst" value={v('heroCtaTekst')} onChange={(val) => update('heroCtaTekst', val)} placeholder="Neem contact op" />
+        <Veld label="Knop link" value={v('heroCtaLink')} onChange={(val) => update('heroCtaLink', val)} placeholder="/contact" hulptekst="Bijv. /contact of /diensten" />
+      </div>
+      <Veld label="Tweede knop tekst" value={v('heroCta2Tekst')} onChange={(val) => update('heroCta2Tekst', val)} placeholder="Bekijk onze diensten" />
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Achtergrondafbeelding</label>
+        <ImageUpload value={v('heroAchtergrondUrl')} onChange={(url) => update('heroAchtergrondUrl', url)} />
+      </div>
+    </Groep>
 
-    <SectieLabel>Secties overzicht</SectieLabel>
-    <VeldInput label="Sectie titel" value={v('sectieTitel')} onChange={(val) => update('sectieTitel', val)} placeholder="Wat kunnen we voor u doen?" />
-    <VeldInput label="Sectie beschrijving" value={v('sectieSub')} onChange={(val) => update('sectieSub', val)} placeholder="Ontdek meer over ons..." />
+    <Groep titel="Overzicht secties">
+      <Veld label="Kop" value={v('sectieTitel')} onChange={(val) => update('sectieTitel', val)} placeholder="Wat kunnen we voor u doen?" />
+      <Veld label="Beschrijving" value={v('sectieSub')} onChange={(val) => update('sectieSub', val)} placeholder="Ontdek meer over ons..." />
+    </Groep>
 
-    <SectieLabel>Pagina labels (navigatie)</SectieLabel>
-    <p className="text-xs text-gray-500 dark:text-gray-400 -mt-2 mb-2">
-      Deze namen verschijnen in het menu en de footer.
-    </p>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <VeldInput label="Over ons" value={v('aboutLabel')} onChange={(val) => update('aboutLabel', val)} placeholder="Over ons" />
-      <VeldInput label="Over ons beschrijving" value={v('aboutBeschrijving')} onChange={(val) => update('aboutBeschrijving', val)} placeholder="Leer ons kennen..." />
-      <VeldInput label="Diensten" value={v('servicesLabel')} onChange={(val) => update('servicesLabel', val)} placeholder="Diensten" />
-      <VeldInput label="Diensten beschrijving" value={v('servicesBeschrijving')} onChange={(val) => update('servicesBeschrijving', val)} placeholder="Bekijk ons aanbod..." />
-      <VeldInput label="Portfolio" value={v('portfolioLabel')} onChange={(val) => update('portfolioLabel', val)} placeholder="Portfolio" />
-      <VeldInput label="Portfolio beschrijving" value={v('portfolioBeschrijving')} onChange={(val) => update('portfolioBeschrijving', val)} placeholder="Bekijk ons werk..." />
-      <VeldInput label="Reviews" value={v('reviewsLabel')} onChange={(val) => update('reviewsLabel', val)} placeholder="Reviews" />
-      <VeldInput label="Reviews beschrijving" value={v('reviewsBeschrijving')} onChange={(val) => update('reviewsBeschrijving', val)} placeholder="Wat klanten zeggen..." />
-      <VeldInput label="Contact" value={v('contactLabel')} onChange={(val) => update('contactLabel', val)} placeholder="Contact" />
-    </div>
+    <Groep titel="Menu namen">
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Deze namen verschijnen in het menu en de footer van je website.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Veld label="Over ons" value={v('aboutLabel')} onChange={(val) => update('aboutLabel', val)} placeholder="Over ons" />
+        <Veld label="Beschrijving over ons" value={v('aboutBeschrijving')} onChange={(val) => update('aboutBeschrijving', val)} placeholder="Leer ons kennen..." />
+        <Veld label="Diensten" value={v('servicesLabel')} onChange={(val) => update('servicesLabel', val)} placeholder="Diensten" />
+        <Veld label="Beschrijving diensten" value={v('servicesBeschrijving')} onChange={(val) => update('servicesBeschrijving', val)} placeholder="Bekijk ons aanbod..." />
+        <Veld label="Portfolio" value={v('portfolioLabel')} onChange={(val) => update('portfolioLabel', val)} placeholder="Portfolio" />
+        <Veld label="Beschrijving portfolio" value={v('portfolioBeschrijving')} onChange={(val) => update('portfolioBeschrijving', val)} placeholder="Bekijk ons werk..." />
+        <Veld label="Reviews" value={v('reviewsLabel')} onChange={(val) => update('reviewsLabel', val)} placeholder="Reviews" />
+        <Veld label="Beschrijving reviews" value={v('reviewsBeschrijving')} onChange={(val) => update('reviewsBeschrijving', val)} placeholder="Wat klanten zeggen..." />
+        <Veld label="Contact" value={v('contactLabel')} onChange={(val) => update('contactLabel', val)} placeholder="Contact" />
+      </div>
+    </Groep>
 
-    <SectieLabel>CTA sectie (onderaan homepage)</SectieLabel>
-    <VeldInput label="Titel" value={v('ctaTitel')} onChange={(val) => update('ctaTitel', val)} placeholder="Klaar om te beginnen?" />
-    <VeldInput label="Beschrijving" value={v('ctaTekst')} onChange={(val) => update('ctaTekst', val)} placeholder="Neem vandaag nog contact op..." />
-    <VeldInput label="Knop tekst" value={v('ctaKnop')} onChange={(val) => update('ctaKnop', val)} placeholder="Contact opnemen" />
+    <Groep titel="Actie-blok onderaan">
+      <Veld label="Kop" value={v('ctaTitel')} onChange={(val) => update('ctaTitel', val)} placeholder="Klaar om te beginnen?" />
+      <Veld label="Beschrijving" value={v('ctaTekst')} onChange={(val) => update('ctaTekst', val)} placeholder="Neem vandaag nog contact op..." />
+      <Veld label="Knop tekst" value={v('ctaKnop')} onChange={(val) => update('ctaKnop', val)} placeholder="Contact opnemen" />
+    </Groep>
   </div>
 )
 
 // ============================================================
-// Over ons Editor
+// Over ons
 // ============================================================
 
 const AboutEditor = ({
@@ -227,49 +264,64 @@ const AboutEditor = ({
 
   return (
     <div className="space-y-4">
-      <SectieLabel>Pagina header</SectieLabel>
-      <VeldInput label="Pagina titel" value={v('paginaTitel')} onChange={(val) => update('paginaTitel', val)} placeholder="Over ons" />
-      <VeldInput label="Pagina subtitel" value={v('paginaSubtitel')} onChange={(val) => update('paginaSubtitel', val)} placeholder="Leer ons beter kennen..." />
+      <Groep titel="Bovenaan de pagina">
+        <Veld label="Pagina titel" value={v('paginaTitel')} onChange={(val) => update('paginaTitel', val)} placeholder="Over ons" />
+        <Veld label="Korte beschrijving" value={v('paginaSubtitel')} onChange={(val) => update('paginaSubtitel', val)} placeholder="Leer ons beter kennen..." />
+      </Groep>
 
-      <SectieLabel>Inhoud</SectieLabel>
-      <VeldInput label="Kop" value={v('titel')} onChange={(val) => update('titel', val)} placeholder="Ons verhaal" />
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tekst</label>
-        <RichTextEditor value={v('tekst')} onChange={(val) => update('tekst', val)} placeholder="Vertel over uw bedrijf..." />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Afbeelding</label>
-        <ImageUpload value={v('afbeeldingUrl')} onChange={(url) => update('afbeeldingUrl', url)} />
-      </div>
+      <Groep titel="Inhoud">
+        <Veld label="Kop" value={v('titel')} onChange={(val) => update('titel', val)} placeholder="Ons verhaal" />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tekst</label>
+          <RichTextEditor value={v('tekst')} onChange={(val) => update('tekst', val)} placeholder="Vertel over je bedrijf..." />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Afbeelding</label>
+          <ImageUpload value={v('afbeeldingUrl')} onChange={(url) => update('afbeeldingUrl', url)} />
+        </div>
+      </Groep>
 
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Kenmerken / USP&#39;s</label>
-          <Button variant="outline" size="sm" icon={<Plus size={14} />} onClick={() => update('kenmerken', [...kenmerken, ''])}>Toevoegen</Button>
+      <Groep titel="Sterke punten">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Korte opsomming van wat jullie onderscheidt. Verschijnt als lijst met vinkjes.
+        </p>
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" icon={<Plus size={14} />} onClick={() => update('kenmerken', [...kenmerken, ''])}>
+            Punt toevoegen
+          </Button>
         </div>
         {kenmerken.length > 0 ? (
           <div className="space-y-2">
             {kenmerken.map((k, i) => (
               <div key={i} className="flex items-center gap-2">
                 <GripVertical size={14} className="text-gray-300 flex-shrink-0" />
-                <input type="text" value={k} onChange={(e) => { const u = [...kenmerken]; u[i] = e.target.value; update('kenmerken', u) }}
+                <input
+                  type="text"
+                  value={k}
+                  onChange={(e) => { const u = [...kenmerken]; u[i] = e.target.value; update('kenmerken', u) }}
                   placeholder="Bijv. 10 jaar ervaring"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-                <button onClick={() => update('kenmerken', kenmerken.filter((_, j) => j !== i))} className="p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"><Trash2 size={14} /></button>
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <button onClick={() => update('kenmerken', kenmerken.filter((_, j) => j !== i))} className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors">
+                  <Trash2 size={14} />
+                </button>
               </div>
             ))}
           </div>
-        ) : <p className="text-sm text-gray-400 italic">Nog geen kenmerken.</p>}
-      </div>
+        ) : (
+          <p className="text-sm text-gray-400 italic">Nog geen punten toegevoegd.</p>
+        )}
+      </Groep>
 
-      <SectieLabel>CTA knop</SectieLabel>
-      <VeldInput label="Knop tekst" value={v('ctaKnop')} onChange={(val) => update('ctaKnop', val)} placeholder="Neem contact op" />
+      <Groep titel="Knop onderaan">
+        <Veld label="Knop tekst" value={v('ctaKnop')} onChange={(val) => update('ctaKnop', val)} placeholder="Neem contact op" />
+      </Groep>
     </div>
   )
 }
 
 // ============================================================
-// Diensten Editor
+// Diensten
 // ============================================================
 
 const ServicesEditor = ({
@@ -285,125 +337,150 @@ const ServicesEditor = ({
 
   return (
     <div className="space-y-4">
-      <SectieLabel>Pagina header</SectieLabel>
-      <VeldInput label="Pagina titel" value={v('paginaTitel')} onChange={(val) => update('paginaTitel', val)} placeholder="Onze diensten" />
-      <VeldInput label="Pagina subtitel" value={v('paginaSubtitel')} onChange={(val) => update('paginaSubtitel', val)} placeholder="Ontdek wat we voor u kunnen betekenen" />
+      <Groep titel="Bovenaan de pagina">
+        <Veld label="Pagina titel" value={v('paginaTitel')} onChange={(val) => update('paginaTitel', val)} placeholder="Onze diensten" />
+        <Veld label="Korte beschrijving" value={v('paginaSubtitel')} onChange={(val) => update('paginaSubtitel', val)} placeholder="Ontdek wat we voor u kunnen betekenen" />
+      </Groep>
 
-      <SectieLabel>Diensten</SectieLabel>
-      <div className="flex justify-end">
-        <Button variant="outline" size="sm" icon={<Plus size={14} />} onClick={() => update('items', [...items, { titel: '', beschrijving: '', prijs: '' }])}>
-          Dienst toevoegen
-        </Button>
-      </div>
-      {items.length > 0 ? (
-        <div className="space-y-4">
-          {items.map((item, i) => (
-            <Card key={i} className="bg-gray-50 dark:bg-gray-800/50">
-              <CardContent className="pt-4 space-y-3">
-                <div className="flex items-start justify-between">
-                  <span className="text-xs font-medium text-gray-400 bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">Dienst {i + 1}</span>
-                  <button onClick={() => update('items', items.filter((_, j) => j !== i))} className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"><Trash2 size={14} /></button>
-                </div>
-                <Input label="Titel" value={item.titel} onChange={(e) => { const u = [...items]; u[i] = { ...u[i], titel: e.target.value }; update('items', u) }} placeholder="Naam van de dienst" />
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Beschrijving</label>
-                  <textarea rows={2} value={item.beschrijving} onChange={(e) => { const u = [...items]; u[i] = { ...u[i], beschrijving: e.target.value }; update('items', u) }}
-                    placeholder="Korte beschrijving" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white resize-none" />
-                </div>
-                <Input label="Prijs (optioneel)" value={item.prijs || ''} onChange={(e) => { const u = [...items]; u[i] = { ...u[i], prijs: e.target.value }; update('items', u) }} placeholder="Vanaf €99" />
-              </CardContent>
-            </Card>
-          ))}
+      <Groep titel="Diensten">
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" icon={<Plus size={14} />} onClick={() => update('items', [...items, { titel: '', beschrijving: '', prijs: '' }])}>
+            Dienst toevoegen
+          </Button>
         </div>
-      ) : (
-        <div className="text-center py-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-          <p className="text-sm text-gray-400">Nog geen diensten.</p>
-        </div>
-      )}
+        {items.length > 0 ? (
+          <div className="space-y-4">
+            {items.map((item, i) => (
+              <Card key={i} className="bg-gray-50 dark:bg-gray-800/50">
+                <CardContent className="pt-4 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <span className="text-xs font-medium text-gray-400 bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">
+                      Dienst {i + 1}
+                    </span>
+                    <button onClick={() => update('items', items.filter((_, j) => j !== i))} className="p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <Input label="Naam" value={item.titel} onChange={(e) => { const u = [...items]; u[i] = { ...u[i], titel: e.target.value }; update('items', u) }} placeholder="Naam van de dienst" />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Beschrijving</label>
+                    <textarea
+                      rows={2}
+                      value={item.beschrijving}
+                      onChange={(e) => { const u = [...items]; u[i] = { ...u[i], beschrijving: e.target.value }; update('items', u) }}
+                      placeholder="Korte beschrijving van deze dienst"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                  <Input label="Prijs (optioneel)" value={item.prijs || ''} onChange={(e) => { const u = [...items]; u[i] = { ...u[i], prijs: e.target.value }; update('items', u) }} placeholder="Vanaf €99" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
+            <p className="text-sm text-gray-400">Nog geen diensten toegevoegd.</p>
+            <p className="text-xs text-gray-400 mt-1">Klik op &quot;Dienst toevoegen&quot; om te beginnen.</p>
+          </div>
+        )}
+      </Groep>
 
-      <SectieLabel>Lege-staat teksten</SectieLabel>
-      <VeldInput label="Titel als er geen diensten zijn" value={v('leegTitel')} onChange={(val) => update('leegTitel', val)} placeholder="Diensten worden binnenkort toegevoegd" />
-      <VeldInput label="Tekst als er geen diensten zijn" value={v('leegTekst')} onChange={(val) => update('leegTekst', val)} placeholder="Neem gerust alvast contact op..." />
+      <Groep titel="Wanneer er nog geen diensten zijn">
+        <Veld label="Titel" value={v('leegTitel')} onChange={(val) => update('leegTitel', val)} placeholder="Diensten worden binnenkort toegevoegd" />
+        <Veld label="Tekst" value={v('leegTekst')} onChange={(val) => update('leegTekst', val)} placeholder="Neem gerust alvast contact op..." />
+      </Groep>
 
-      <SectieLabel>CTA sectie</SectieLabel>
-      <VeldInput label="Titel" value={v('ctaTitel')} onChange={(val) => update('ctaTitel', val)} placeholder="Interesse in een van onze diensten?" />
-      <VeldInput label="Beschrijving" value={v('ctaTekst')} onChange={(val) => update('ctaTekst', val)} placeholder="Neem vrijblijvend contact op..." />
-      <VeldInput label="Knop tekst" value={v('ctaKnop')} onChange={(val) => update('ctaKnop', val)} placeholder="Contact opnemen" />
+      <Groep titel="Actie-blok onderaan">
+        <Veld label="Kop" value={v('ctaTitel')} onChange={(val) => update('ctaTitel', val)} placeholder="Interesse in een van onze diensten?" />
+        <Veld label="Beschrijving" value={v('ctaTekst')} onChange={(val) => update('ctaTekst', val)} placeholder="Neem vrijblijvend contact op..." />
+        <Veld label="Knop tekst" value={v('ctaKnop')} onChange={(val) => update('ctaKnop', val)} placeholder="Contact opnemen" />
+      </Groep>
     </div>
   )
 }
 
 // ============================================================
-// Portfolio Editor
+// Portfolio
 // ============================================================
 
 const PortfolioEditor = ({ v, update }: { v: (f: string) => string; update: (f: string, val: unknown) => void }) => (
   <div className="space-y-4">
-    <SectieLabel>Pagina header</SectieLabel>
-    <VeldInput label="Pagina titel" value={v('paginaTitel')} onChange={(val) => update('paginaTitel', val)} placeholder="Portfolio" />
-    <VeldInput label="Pagina subtitel" value={v('paginaSubtitel')} onChange={(val) => update('paginaSubtitel', val)} placeholder="Bekijk ons werk en eerdere projecten" />
+    <Groep titel="Bovenaan de pagina">
+      <Veld label="Pagina titel" value={v('paginaTitel')} onChange={(val) => update('paginaTitel', val)} placeholder="Portfolio" />
+      <Veld label="Korte beschrijving" value={v('paginaSubtitel')} onChange={(val) => update('paginaSubtitel', val)} placeholder="Bekijk ons werk en eerdere projecten" />
+    </Groep>
 
-    <SectieLabel>Lege-staat teksten</SectieLabel>
-    <VeldInput label="Titel als er geen items zijn" value={v('leegTitel')} onChange={(val) => update('leegTitel', val)} placeholder="Portfolio items worden binnenkort toegevoegd" />
-    <VeldInput label="Tekst als er geen items zijn" value={v('leegTekst')} onChange={(val) => update('leegTekst', val)} placeholder="We zijn druk bezig..." />
+    <Groep titel="Wanneer er nog geen items zijn">
+      <Veld label="Titel" value={v('leegTitel')} onChange={(val) => update('leegTitel', val)} placeholder="Portfolio items worden binnenkort toegevoegd" />
+      <Veld label="Tekst" value={v('leegTekst')} onChange={(val) => update('leegTekst', val)} placeholder="We zijn druk bezig..." />
+    </Groep>
 
-    <SectieLabel>Overig</SectieLabel>
-    <VeldInput label="'Bekijken' link tekst" value={v('bekijkenTekst')} onChange={(val) => update('bekijkenTekst', val)} placeholder="Bekijken" />
+    <Groep titel="Overig">
+      <Veld label="Tekst op 'Bekijken' link" value={v('bekijkenTekst')} onChange={(val) => update('bekijkenTekst', val)} placeholder="Bekijken" />
+    </Groep>
   </div>
 )
 
 // ============================================================
-// Reviews Editor
+// Reviews
 // ============================================================
 
 const ReviewsEditor = ({ v, update }: { v: (f: string) => string; update: (f: string, val: unknown) => void }) => (
   <div className="space-y-4">
-    <SectieLabel>Pagina header</SectieLabel>
-    <VeldInput label="Pagina titel" value={v('paginaTitel')} onChange={(val) => update('paginaTitel', val)} placeholder="Reviews" />
-    <VeldInput label="Pagina subtitel" value={v('paginaSubtitel')} onChange={(val) => update('paginaSubtitel', val)} placeholder="Wat onze klanten over ons zeggen" />
+    <Groep titel="Bovenaan de pagina">
+      <Veld label="Pagina titel" value={v('paginaTitel')} onChange={(val) => update('paginaTitel', val)} placeholder="Reviews" />
+      <Veld label="Korte beschrijving" value={v('paginaSubtitel')} onChange={(val) => update('paginaSubtitel', val)} placeholder="Wat onze klanten over ons zeggen" />
+    </Groep>
 
-    <SectieLabel>Statistieken</SectieLabel>
-    <VeldInput label="Statistiek tekst" value={v('statsTekst')} onChange={(val) => update('statsTekst', val)} placeholder="Gebaseerd op X reviews" />
+    <Groep titel="Statistieken">
+      <Veld label="Tekst onder het gemiddelde" value={v('statsTekst')} onChange={(val) => update('statsTekst', val)} placeholder="Gebaseerd op X reviews" hulptekst="Laat leeg om automatisch het aantal reviews te tonen" />
+    </Groep>
 
-    <SectieLabel>Lege-staat teksten</SectieLabel>
-    <VeldInput label="Titel als er geen reviews zijn" value={v('leegTitel')} onChange={(val) => update('leegTitel', val)} placeholder="Nog geen reviews" />
-    <VeldInput label="Tekst als er geen reviews zijn" value={v('leegTekst')} onChange={(val) => update('leegTekst', val)} placeholder="Binnenkort verschijnen hier beoordelingen..." />
+    <Groep titel="Wanneer er nog geen reviews zijn">
+      <Veld label="Titel" value={v('leegTitel')} onChange={(val) => update('leegTitel', val)} placeholder="Nog geen reviews" />
+      <Veld label="Tekst" value={v('leegTekst')} onChange={(val) => update('leegTekst', val)} placeholder="Binnenkort verschijnen hier beoordelingen..." />
+    </Groep>
 
-    <SectieLabel>CTA sectie</SectieLabel>
-    <VeldInput label="Titel" value={v('ctaTitel')} onChange={(val) => update('ctaTitel', val)} placeholder="Overtuigd?" />
-    <VeldInput label="Beschrijving" value={v('ctaTekst')} onChange={(val) => update('ctaTekst', val)} placeholder="Neem contact met ons op..." />
-    <VeldInput label="Knop tekst" value={v('ctaKnop')} onChange={(val) => update('ctaKnop', val)} placeholder="Contact opnemen" />
+    <Groep titel="Actie-blok onderaan">
+      <Veld label="Kop" value={v('ctaTitel')} onChange={(val) => update('ctaTitel', val)} placeholder="Overtuigd?" />
+      <Veld label="Beschrijving" value={v('ctaTekst')} onChange={(val) => update('ctaTekst', val)} placeholder="Neem contact met ons op..." />
+      <Veld label="Knop tekst" value={v('ctaKnop')} onChange={(val) => update('ctaKnop', val)} placeholder="Contact opnemen" />
+    </Groep>
   </div>
 )
 
 // ============================================================
-// Contact Editor
+// Contact
 // ============================================================
 
 const ContactEditor = ({ v, update }: { v: (f: string) => string; update: (f: string, val: unknown) => void }) => (
   <div className="space-y-4">
-    <SectieLabel>Pagina header</SectieLabel>
-    <VeldInput label="Pagina titel" value={v('paginaTitel')} onChange={(val) => update('paginaTitel', val)} placeholder="Contact" />
-    <VeldInput label="Pagina subtitel" value={v('paginaSubtitel')} onChange={(val) => update('paginaSubtitel', val)} placeholder="We horen graag van u..." />
+    <Groep titel="Bovenaan de pagina">
+      <Veld label="Pagina titel" value={v('paginaTitel')} onChange={(val) => update('paginaTitel', val)} placeholder="Contact" />
+      <Veld label="Korte beschrijving" value={v('paginaSubtitel')} onChange={(val) => update('paginaSubtitel', val)} placeholder="We horen graag van u..." />
+    </Groep>
 
-    <SectieLabel>Kolom links</SectieLabel>
-    <VeldInput label="Contactgegevens titel" value={v('infoTitel')} onChange={(val) => update('infoTitel', val)} placeholder="Contactgegevens" />
-    <VeldInput label="Openingstijden titel" value={v('openingsTitel')} onChange={(val) => update('openingsTitel', val)} placeholder="Openingstijden" />
+    <Groep titel="Contactgegevens kolom">
+      <Veld label="Titel boven contactgegevens" value={v('infoTitel')} onChange={(val) => update('infoTitel', val)} placeholder="Contactgegevens" />
+      <Veld label="Titel boven openingstijden" value={v('openingsTitel')} onChange={(val) => update('openingsTitel', val)} placeholder="Openingstijden" />
+    </Groep>
 
-    <SectieLabel>Formulier</SectieLabel>
-    <VeldInput label="Formulier titel" value={v('formulierTitel')} onChange={(val) => update('formulierTitel', val)} placeholder="Stuur een bericht" />
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <VeldInput label="Naam label" value={v('naamLabel')} onChange={(val) => update('naamLabel', val)} placeholder="Naam" />
-      <VeldInput label="E-mail label" value={v('emailLabel')} onChange={(val) => update('emailLabel', val)} placeholder="E-mail" />
-      <VeldInput label="Telefoon label" value={v('telefoonLabel')} onChange={(val) => update('telefoonLabel', val)} placeholder="Telefoon (optioneel)" />
-      <VeldInput label="Bericht label" value={v('berichtLabel')} onChange={(val) => update('berichtLabel', val)} placeholder="Bericht" />
-    </div>
-    <VeldInput label="Bericht placeholder" value={v('berichtPlaceholder')} onChange={(val) => update('berichtPlaceholder', val)} placeholder="Waar kunnen we u mee helpen?" />
-    <VeldInput label="Verzend knop tekst" value={v('verzendKnop')} onChange={(val) => update('verzendKnop', val)} placeholder="Versturen" />
+    <Groep titel="Contactformulier">
+      <Veld label="Titel boven formulier" value={v('formulierTitel')} onChange={(val) => update('formulierTitel', val)} placeholder="Stuur een bericht" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Veld label="Naam veld" value={v('naamLabel')} onChange={(val) => update('naamLabel', val)} placeholder="Naam" />
+        <Veld label="E-mail veld" value={v('emailLabel')} onChange={(val) => update('emailLabel', val)} placeholder="E-mail" />
+        <Veld label="Telefoon veld" value={v('telefoonLabel')} onChange={(val) => update('telefoonLabel', val)} placeholder="Telefoon (optioneel)" />
+        <Veld label="Bericht veld" value={v('berichtLabel')} onChange={(val) => update('berichtLabel', val)} placeholder="Bericht" />
+      </div>
+      <Veld label="Placeholder in berichtveld" value={v('berichtPlaceholder')} onChange={(val) => update('berichtPlaceholder', val)} placeholder="Waar kunnen we u mee helpen?" />
+      <Veld label="Tekst op verzendknop" value={v('verzendKnop')} onChange={(val) => update('verzendKnop', val)} placeholder="Versturen" />
+    </Groep>
 
-    <SectieLabel>Bevestigingen</SectieLabel>
-    <VeldInput label="Succes melding" value={v('successBericht')} onChange={(val) => update('successBericht', val)} placeholder="Bericht verzonden! We nemen zo snel mogelijk contact op." />
-    <VeldInput label="Fout melding" value={v('errorBericht')} onChange={(val) => update('errorBericht', val)} placeholder="Er ging iets mis. Probeer het later opnieuw." />
+    <Groep titel="Meldingen na verzenden">
+      <Veld label="Succesbericht" value={v('successBericht')} onChange={(val) => update('successBericht', val)} placeholder="Bericht verzonden! We nemen zo snel mogelijk contact op." />
+      <Veld label="Foutmelding" value={v('errorBericht')} onChange={(val) => update('errorBericht', val)} placeholder="Er ging iets mis. Probeer het later opnieuw." />
+    </Groep>
   </div>
 )
 

@@ -74,7 +74,7 @@ const CmsLayout = ({ isAdmin = false }: CmsLayoutProps) => {
             <img src={config.branding.logoUrl} alt="" className="h-8 w-8 object-contain" />
           )}
           <span className="font-bold text-gray-900 dark:text-white truncate">
-            {isAdmin ? 'Admin' : 'CMS'}
+            {config.info.naam}
           </span>
         </div>
 
@@ -131,8 +131,8 @@ const CmsLayout = ({ isAdmin = false }: CmsLayoutProps) => {
         >
           <Menu size={20} />
         </button>
-        <span className="font-bold text-gray-900 dark:text-white">
-          {isAdmin ? 'Admin' : 'CMS'}
+        <span className="font-bold text-gray-900 dark:text-white truncate">
+          {config.info.naam}
         </span>
         <div className="w-9" />
       </div>
@@ -155,8 +155,8 @@ const CmsLayout = ({ isAdmin = false }: CmsLayoutProps) => {
               className="fixed inset-y-0 left-0 w-[280px] bg-white dark:bg-gray-800 z-50 lg:hidden"
             >
               <div className="flex items-center justify-between px-4 h-14 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-bold text-gray-900 dark:text-white">
-                  {isAdmin ? 'Admin' : 'CMS'}
+                <span className="font-bold text-gray-900 dark:text-white truncate">
+                  {config.info.naam}
                 </span>
                 <button
                   onClick={() => setSidebarOpen(false)}

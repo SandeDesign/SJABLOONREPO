@@ -36,7 +36,7 @@ interface HomeContent {
 
 const PubliekeWebsite = () => {
   const { config } = useTenantConfig()
-  const { data: c } = useContent<HomeContent>('home')
+  const { data: c, loading } = useContent<HomeContent>('home')
 
   useEffect(() => {
     document.title = config.seo.title || config.info.naam
@@ -83,7 +83,7 @@ const PubliekeWebsite = () => {
   ].filter((l) => config.website[l.key as keyof typeof config.website])
 
   return (
-    <>
+    <div className={`transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}>
       {/* Hero */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
         {c?.heroAchtergrondUrl ? (
@@ -215,7 +215,7 @@ const PubliekeWebsite = () => {
           </div>
         </section>
       )}
-    </>
+    </div>
   )
 }
 
